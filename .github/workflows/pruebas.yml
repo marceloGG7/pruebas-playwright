@@ -1,6 +1,7 @@
 name: Pruebas Playwright
 
 on:
+  push:
   workflow_dispatch:
 
 permissions:
