@@ -15,7 +15,6 @@ namespace ProeyctoDePruebas
             await Page.GetByRole(AriaRole.Textbox, new() { Name = "Username" }).ClickAsync();
             await Page.GetByRole(AriaRole.Textbox, new() { Name = "Username" }).FillAsync("marcelo");
             await Page.GetByRole(AriaRole.Button, new() { Name = "Login" }).ClickAsync();
-            //await Page.GetByText("Your username is invalid! ×").ClickAsync();
             await Expect(Page.Locator("#flash")).ToContainTextAsync("Your username is invalid!");
         }
     }
