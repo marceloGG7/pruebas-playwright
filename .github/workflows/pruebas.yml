@@ -1,11 +1,46 @@
-name: Verificar
+name: Pruebas Playwright
 
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+
     steps:
-      - name: Hola
-        run: echo "workflow ok"
+      - name: Descargar el repositorio
+        uses: actions/checkout@v4
+
+      - name: Instalar .NET 10
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Localizar el proyecto
+        shell: pwsh
+        run: |
+          $proyecto = Get-ChildItem -Recurse -Filter ProeyctoDePruebas.csproj | Select-Object -First 1
+          if (!$proyecto) { throw "No se encontró el proyecto de pruebas" }
+          "PROYECTO=$($proyecto.FullName)" >> $env:GITHUB_ENV
+          "CARPETA=$($proyecto.DirectoryName)" >> $env:GITHUB_ENV
+
+      - name: Restaurar dependencias
+        shell: pwsh
+        run: dotnet restore "$env:PROYECTO"
+
+      - name: Compilar
+        shell: pwsh
+        run: dotnet build "$env:PROYECTO" --configuration Release --no-restore
+
+      - name: Instalar Chromium
+        shell: pwsh
+        run: |
+          & "$env:CARPETA/bin/Release/net10.0/playwright.ps1" install --with-deps chromium
+
+      - name: Ejecutar las pruebas
+        shell: pwsh
+        run: dotnet test "$env:PROYECTO" --configuration Release --no-build
